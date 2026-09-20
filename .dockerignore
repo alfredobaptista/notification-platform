@@ -1,0 +1,31 @@
+# Git
+.git
+.gitignore
+.gitattributes
+
+# Maven
+target/
+.mvn/
+*.log
+
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
+
+# Ambiente / secrets
+.env
+.env.*
+!.env.example
+
+# Documentação
+README.md
+docs/
+
+# Outros
+*.tmp
+*.swp

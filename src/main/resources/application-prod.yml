@@ -1,0 +1,42 @@
+spring:
+  config:
+    activate:
+      on-profile: prod
+
+  datasource:
+    url: jdbc:postgresql://${DB_HOST}:${DB_PORT}/${DB_NAME}
+    username: ${DB_USER}
+    password: ${DB_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    show-sql: false
+
+    properties:
+      hibernate:
+        format_sql: false
+
+  rabbitmq:
+    host: ${RABBITMQ_HOST}
+    port: ${RABBITMQ_PORT}
+    username: ${RABBITMQ_USER}
+    password: ${RABBITMQ_PASS}
+
+
+notification:
+  providers:
+
+    brevo:
+      api-key: ${BREVO_API_KEY}
+      sender-email: ${BREVO_SENDER_EMAIL}
+      sender-name: ${BREVO_SENDER_NAME}
+
+    twilio:
+      account-sid: ${TWILIO_ACCOUNT_SID}
+      auth-token: ${TWILIO_AUTH_TOKEN}
+      from-number: ${TWILIO_FROM_NUMBER}
+
+logging:
+  level:
+    root: INFO
+    com.github.alfredobaptista.notification: INFO

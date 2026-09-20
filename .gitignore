@@ -1,0 +1,53 @@
+HELP.md
+
+# Maven
+target/
+.mvn/wrapper/maven-wrapper.jar
+
+# Spring Boot
+spring-boot-devtools.properties
+
+# Build
+build/
+!**/src/main/**/build/
+!**/src/test/**/build/
+
+# Environment / Secrets
+.env
+.env.*
+!.env.example
+
+secrets/
+*.pem
+*.key
+*.p12
+*.jks
+
+# STS / Eclipse
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings/
+.springBeans
+.sts4-cache
+
+# IntelliJ IDEA
+.idea/
+*.iws
+*.iml
+*.ipr
+
+# NetBeans
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+
+# VS Code
+.vscode/
+
+# OS generated files
+.DS_Store
+Thumbs.db

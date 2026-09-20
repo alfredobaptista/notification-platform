@@ -1,0 +1,128 @@
+services:
+
+  # ==========================================
+  # PostgreSQL
+  # ==========================================
+
+  postgres:
+    image: postgres:15-alpine
+
+    container_name: notification_postgres
+
+    env_file:
+      - .env
+
+    environment:
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+
+    ports:
+      - "5432:5432"
+
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U ${DB_USER} -d ${DB_NAME}"
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+    networks:
+      - notification-network
+
+
+  # ==========================================
+  # RabbitMQ
+  # ==========================================
+
+  rabbitmq:
+    image: rabbitmq:3.12-management-alpine
+
+    container_name: notification_rabbitmq
+
+    env_file:
+      - .env
+
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASS}
+
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "rabbitmq-diagnostics",
+          "-q",
+          "ping"
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+    networks:
+      - notification-network
+
+
+  # ==========================================
+  # Spring Boot Application
+  # ==========================================
+
+  app:
+    build: .
+
+    container_name: notification_api
+
+    env_file:
+      - .env
+
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      DB_HOST: postgres
+      RABBITMQ_HOST: rabbitmq
+
+    ports:
+      - "8080:8080"
+
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+      rabbitmq:
+        condition: service_healthy
+
+    networks:
+      - notification-network
+
+
+# ==========================================
+# Volumes
+# ==========================================
+
+volumes:
+
+  postgres_data:
+
+  rabbitmq_data:
+
+
+# ==========================================
+# Network
+# ==========================================
+
+networks:
+
+  notification-network:
+    driver: bridge
