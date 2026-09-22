@@ -1,9 +1,9 @@
 package com.github.alfredobaptista.notification.application.service;
 
+import com.github.alfredobaptista.notification.application.port.out.NotificationRepository;
 import com.github.alfredobaptista.notification.domain.entity.Notification;
 import com.github.alfredobaptista.notification.domain.enums.NotificationChannel;
 import com.github.alfredobaptista.notification.domain.enums.NotificationPriority;
-import com.github.alfredobaptista.notification.application.port.out.NotificationRepository;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -44,7 +44,9 @@ class GetNotificationServiceTest {
                 "Test notification",
                 "Hello World",
                 NotificationPriority.NORMAL,
-                "notification-123"
+                UUID.fromString(
+                        "550e8400-e29b-41d4-a716-446655440020"
+                )
         );
 
         when(repository.findById(notificationId))

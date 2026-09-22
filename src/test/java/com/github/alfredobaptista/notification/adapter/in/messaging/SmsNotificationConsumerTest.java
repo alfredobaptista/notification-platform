@@ -18,6 +18,7 @@ import org.springframework.amqp.rabbit.core.RabbitTemplate;
 
 import java.io.IOException;
 import java.util.Optional;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -64,7 +65,9 @@ class SmsNotificationConsumerTest {
                 "Teste",
                 "Conteúdo da notificação SMS",
                 NotificationPriority.NORMAL,
-                "idem-sms-001"
+                UUID.fromString(
+                        "550e8400-e29b-41d4-a716-446655440050"
+                )
         );
 
         message = NotificationCreatedMessage.fromDomain(notification);
@@ -147,7 +150,9 @@ class SmsNotificationConsumerTest {
                 "Teste",
                 "Conteúdo da notificação SMS",
                 NotificationPriority.NORMAL,
-                "idem-sms-fail-001"
+                UUID.fromString(
+                        "550e8400-e29b-41d4-a716-446655440051"
+                )
         );
 
         message = NotificationCreatedMessage.fromDomain(notification);
@@ -210,7 +215,9 @@ class SmsNotificationConsumerTest {
                 "Teste",
                 "Conteúdo da notificação SMS",
                 NotificationPriority.NORMAL,
-                "idem-sms-retry-002"
+                UUID.fromString(
+                        "550e8400-e29b-41d4-a716-446655440052"
+                )
         );
 
         message = NotificationCreatedMessage.fromDomain(notification);
@@ -285,7 +292,9 @@ class SmsNotificationConsumerTest {
                 "Teste",
                 "Conteúdo da notificação SMS",
                 NotificationPriority.NORMAL,
-                "idem-sms-dlq-003"
+                UUID.fromString(
+                        "550e8400-e29b-41d4-a716-446655440053"
+                )
         );
 
         message = NotificationCreatedMessage.fromDomain(notification);

@@ -9,20 +9,33 @@ import com.github.alfredobaptista.notification.domain.enums.NotificationChannel;
 import com.github.alfredobaptista.notification.domain.enums.NotificationPriority;
 import com.github.alfredobaptista.notification.domain.enums.NotificationStatus;
 import com.github.alfredobaptista.notification.infrastructure.config.RabbitMQConfig;
+
 import com.rabbitmq.client.Channel;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 
 import java.io.IOException;
 import java.util.Optional;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class EmailNotificationConsumerTest {
@@ -66,7 +79,9 @@ class EmailNotificationConsumerTest {
                 "Teste",
                 "Conteúdo da notificação",
                 NotificationPriority.NORMAL,
-                "idem-key-001"
+                UUID.fromString(
+                        "550e8400-e29b-41d4-a716-446655440040"
+                )
         );
 
         message = NotificationCreatedMessage.fromDomain(notification);

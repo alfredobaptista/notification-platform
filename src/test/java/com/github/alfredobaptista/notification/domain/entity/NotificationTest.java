@@ -9,6 +9,7 @@ import com.github.alfredobaptista.notification.domain.exception.InvalidNotificat
 import org.junit.jupiter.api.Test;
 
 import java.time.OffsetDateTime;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -20,6 +21,9 @@ class NotificationTest {
 
         // Arrange
         var before = OffsetDateTime.now();
+        var idempotencyKey = UUID.fromString(
+                "550e8400-e29b-41d4-a716-446655440000"
+        );
 
         // Act
         var notification = new Notification(
@@ -28,7 +32,7 @@ class NotificationTest {
                 "Test notification",
                 "Hello World",
                 null,
-                "  notification-123  "
+                idempotencyKey
         );
 
         var after = OffsetDateTime.now();
@@ -50,7 +54,7 @@ class NotificationTest {
         assertThat(notification.getAttempts())
                 .isZero();
         assertThat(notification.getIdempotencyKey())
-                .isEqualTo("notification-123");
+                .isEqualTo(idempotencyKey);
         assertThat(notification.getCreatedAt())
                 .isBetween(before, after);
         assertThat(notification.getUpdatedAt())
@@ -103,6 +107,7 @@ class NotificationTest {
 
         // Arrange
         var notification = createNotification();
+
         notification.markAsProcessing();
         notification.markAsRetrying("Temporary failure");
 
@@ -173,6 +178,7 @@ class NotificationTest {
 
         // Arrange
         var notification = createNotification();
+
         notification.markAsProcessing();
         notification.markAsRetrying("Temporary failure");
 
@@ -199,7 +205,7 @@ class NotificationTest {
                 "Subject",
                 "Content",
                 NotificationPriority.NORMAL,
-                "key-123"
+                UUID.randomUUID()
         ))
                 .isInstanceOf(InvalidNotificationException.class)
                 .hasMessage("Notification channel is required");
@@ -218,7 +224,7 @@ class NotificationTest {
                 "Subject",
                 "Content",
                 NotificationPriority.NORMAL,
-                "key-123"
+                UUID.randomUUID()
         ))
                 .isInstanceOf(InvalidNotificationException.class)
                 .hasMessage("Notification recipient is required");
@@ -237,7 +243,7 @@ class NotificationTest {
                 "Subject",
                 content,
                 NotificationPriority.NORMAL,
-                "key-123"
+                UUID.randomUUID()
         ))
                 .isInstanceOf(InvalidNotificationException.class)
                 .hasMessage("Notification content is required");
@@ -248,6 +254,7 @@ class NotificationTest {
 
         // Arrange
         var notification = createNotification();
+
         notification.markAsProcessing();
         notification.markAsDelivered();
 
@@ -300,7 +307,7 @@ class NotificationTest {
                 "Test notification",
                 "Hello World",
                 NotificationPriority.NORMAL,
-                "notification-test-key"
+                UUID.fromString("550e8400-e29b-41d4-a716-446655440001")
         );
     }
 }

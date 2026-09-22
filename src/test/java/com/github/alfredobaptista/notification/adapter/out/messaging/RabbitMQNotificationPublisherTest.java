@@ -8,15 +8,19 @@ import com.github.alfredobaptista.notification.domain.entity.Notification;
 import com.github.alfredobaptista.notification.domain.enums.NotificationChannel;
 import com.github.alfredobaptista.notification.domain.enums.NotificationPriority;
 import com.github.alfredobaptista.notification.infrastructure.config.RabbitMQConfig;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 
 import java.util.List;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -162,7 +166,9 @@ class RabbitMQNotificationPublisherTest {
                 "Teste",
                 "Conteúdo da notificação",
                 NotificationPriority.NORMAL,
-                "test-idempotency-key"
+                UUID.fromString(
+                        "550e8400-e29b-41d4-a716-446655440030"
+                )
         );
     }
 }

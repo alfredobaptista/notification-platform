@@ -17,10 +17,10 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Optional;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -57,7 +57,10 @@ class CreateNotificationServiceTest {
         var subject = "Test notification";
         var content = "Hello World";
         var priority = NotificationPriority.HIGH;
-        var idempotencyKey = "notification-123";
+
+        var idempotencyKey = UUID.fromString(
+                "550e8400-e29b-41d4-a716-446655440010"
+        );
 
         when(repository.findByIdempotencyKey(idempotencyKey))
                 .thenReturn(Optional.empty());
@@ -82,7 +85,8 @@ class CreateNotificationServiceTest {
         assertThat(result.getSubject()).isEqualTo(subject);
         assertThat(result.getContent()).isEqualTo(content);
         assertThat(result.getPriority()).isEqualTo(priority);
-        assertThat(result.getIdempotencyKey()).isEqualTo(idempotencyKey);
+        assertThat(result.getIdempotencyKey())
+                .isEqualTo(idempotencyKey);
 
         verify(repository)
                 .findByIdempotencyKey(idempotencyKey);
@@ -101,16 +105,20 @@ class CreateNotificationServiceTest {
     void shouldReturnExistingNotificationWhenIdempotencyKeyAlreadyExists() {
 
         // Arrange
+        var idempotencyKey = UUID.fromString(
+                "550e8400-e29b-41d4-a716-446655440011"
+        );
+
         var existingNotification = new Notification(
                 NotificationChannel.EMAIL,
                 "user@example.com",
                 "Existing notification",
                 "Already created",
                 NotificationPriority.NORMAL,
-                "notification-123"
+                idempotencyKey
         );
 
-        when(repository.findByIdempotencyKey("notification-123"))
+        when(repository.findByIdempotencyKey(idempotencyKey))
                 .thenReturn(Optional.of(existingNotification));
 
         // Act
@@ -120,7 +128,7 @@ class CreateNotificationServiceTest {
                 "Another notification",
                 "This should not be created",
                 NotificationPriority.HIGH,
-                "notification-123"
+                idempotencyKey
         );
 
         // Assert
@@ -128,7 +136,7 @@ class CreateNotificationServiceTest {
                 .isSameAs(existingNotification);
 
         verify(repository)
-                .findByIdempotencyKey("notification-123");
+                .findByIdempotencyKey(idempotencyKey);
 
         verify(repository, never())
                 .save(any(Notification.class));
@@ -144,7 +152,9 @@ class CreateNotificationServiceTest {
     void shouldSaveNotificationWithCorrectData() {
 
         // Arrange
-        var idempotencyKey = "notification-456";
+        var idempotencyKey = UUID.fromString(
+                "550e8400-e29b-41d4-a716-446655440012"
+        );
 
         when(repository.findByIdempotencyKey(idempotencyKey))
                 .thenReturn(Optional.empty());
@@ -187,7 +197,9 @@ class CreateNotificationServiceTest {
     void shouldPublishEventWithSavedNotification() {
 
         // Arrange
-        var idempotencyKey = "notification-789";
+        var idempotencyKey = UUID.fromString(
+                "550e8400-e29b-41d4-a716-446655440013"
+        );
 
         when(repository.findByIdempotencyKey(idempotencyKey))
                 .thenReturn(Optional.empty());
