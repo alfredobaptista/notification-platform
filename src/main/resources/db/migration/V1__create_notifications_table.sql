@@ -1,8 +1,8 @@
 CREATE TYPE notification_channel AS ENUM (
     'EMAIL',
     'SMS',
-    'PUSH',
-    'WHATSAPP'
+    'PUSH'
+
 );
 
 CREATE TYPE notification_status AS ENUM (
@@ -51,7 +51,7 @@ CREATE TABLE notifications (
         DEFAULT 0
         CHECK (attempts >= 0),
 
-    idempotency_key VARCHAR(255) UNIQUE,
+    idempotency_key VARCHAR(255) NOT NULL UNIQUE,
 
     created_at TIMESTAMPTZ NOT NULL
         DEFAULT CURRENT_TIMESTAMP,
