@@ -4,8 +4,10 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 
 @ConfigurationProperties(prefix = "notification.providers.brevo")
 public record BrevoProperties(
-    String apiKey,
-    String senderEmail,
-    String senderName
+        String baseUrl,
+        String apiKey,
+        String senderEmail,
+        String senderName
+
 ) {
 }

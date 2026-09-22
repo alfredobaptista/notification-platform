@@ -16,17 +16,16 @@ import org.springframework.web.client.RestClient;
 public class ProviderConfig {
 
     @Bean
-    public RestClient brevoRestClient() {
+    public RestClient brevoRestClient(BrevoProperties properties) {
         return RestClient.builder()
-                .baseUrl("https://api.brevo.com/v3")
+                .baseUrl(properties.baseUrl())
                 .build();
     }
 
     @Bean
-    public RestClient twilioRestClient() {
+    public RestClient twilioRestClient(TwilioProperties properties) {
         return RestClient.builder()
-                .baseUrl("https://api.twilio.com/2010-04-01")
+                .baseUrl(properties.baseUrl())
                 .build();
     }
 }
-
