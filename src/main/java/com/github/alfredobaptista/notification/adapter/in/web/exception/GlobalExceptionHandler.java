@@ -13,6 +13,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingRequestHeaderException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 import java.time.OffsetDateTime;
 import java.util.List;
@@ -80,6 +81,29 @@ public class GlobalExceptionHandler {
         return buildResponse(
                 HttpStatus.BAD_REQUEST,
                 "O header '" + exception.getHeaderName() + "' é obrigatório.",
+                request.getRequestURI(),
+                List.of()
+        );
+    }
+
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<ErrorResponse> handleTypeMismatch(
+            MethodArgumentTypeMismatchException exception,
+            HttpServletRequest request
+    ) {
+
+        if ("idempotencyKey".equals(exception.getName())) {
+            return buildResponse(
+                    HttpStatus.BAD_REQUEST,
+                    "O header 'Idempotency-Key' deve conter um UUID válido.",
+                    request.getRequestURI(),
+                    List.of()
+            );
+        }
+
+        return buildResponse(
+                HttpStatus.BAD_REQUEST,
+                "Um ou mais parâmetros da requisição possuem formato inválido.",
                 request.getRequestURI(),
                 List.of()
         );

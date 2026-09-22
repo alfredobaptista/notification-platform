@@ -8,5 +8,5 @@ import java.util.UUID;
 public interface SpringDataNotificationRepository
         extends JpaRepository<NotificationEntity, UUID> {
 
-    Optional<NotificationEntity> findByIdempotencyKey(String idempotencyKey);
+    Optional<NotificationEntity> findByIdempotencyKey(UUID idempotencyKey);
 }

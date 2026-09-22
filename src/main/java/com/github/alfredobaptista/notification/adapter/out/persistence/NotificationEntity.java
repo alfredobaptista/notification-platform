@@ -63,8 +63,8 @@ public class NotificationEntity {
     @Column(nullable = false)
     private Integer attempts;
 
-    @Column(name = "idempotency_key", unique = true, length = 255)
-    private String idempotencyKey;
+    @Column(name = "idempotency_key", nullable = false, unique = true)
+    private UUID idempotencyKey;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private OffsetDateTime createdAt;

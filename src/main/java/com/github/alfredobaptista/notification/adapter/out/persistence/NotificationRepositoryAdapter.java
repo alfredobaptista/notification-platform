@@ -37,15 +37,15 @@ public class NotificationRepositoryAdapter
 
     @Override
     public Optional<Notification> findByIdempotencyKey(
-            String idempotencyKey
+            UUID idempotencyKey
     ) {
 
-        if (idempotencyKey == null || idempotencyKey.isBlank()) {
+        if (idempotencyKey == null) {
             return Optional.empty();
         }
 
         return springDataRepository
-                .findByIdempotencyKey(idempotencyKey.trim())
+                .findByIdempotencyKey(idempotencyKey)
                 .map(NotificationMapper::toDomain);
     }
 }

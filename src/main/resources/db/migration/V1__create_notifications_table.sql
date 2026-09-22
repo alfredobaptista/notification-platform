@@ -51,7 +51,7 @@ CREATE TABLE notifications (
         DEFAULT 0
         CHECK (attempts >= 0),
 
-    idempotency_key VARCHAR(255) NOT NULL UNIQUE,
+    idempotency_key UUID NOT NULL UNIQUE,
 
     created_at TIMESTAMPTZ NOT NULL
         DEFAULT CURRENT_TIMESTAMP,

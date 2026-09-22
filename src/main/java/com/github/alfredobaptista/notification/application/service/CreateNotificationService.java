@@ -11,6 +11,8 @@ import com.github.alfredobaptista.notification.domain.enums.NotificationPriority
 
 import lombok.RequiredArgsConstructor;
 
+import java.util.UUID;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -31,7 +33,7 @@ public class CreateNotificationService
             String subject,
             String content,
             NotificationPriority priority,
-            String idempotencyKey
+            UUID idempotencyKey
     ) {
 
         var existing = repository.findByIdempotencyKey(idempotencyKey);

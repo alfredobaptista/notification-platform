@@ -25,7 +25,7 @@ public class NotificationController {
 
     @PostMapping
     public ResponseEntity<NotificationResponseDto> createNotification(
-            @RequestHeader("Idempotency-Key") String idempotencyKey,
+            @RequestHeader("Idempotency-Key") UUID idempotencyKey,
             @RequestBody @Valid NotificationRequestDto request
     ) {
 

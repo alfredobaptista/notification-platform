@@ -25,7 +25,7 @@ public class Notification {
 
     private int attempts;
 
-    private final String idempotencyKey;
+    private final UUID idempotencyKey;
 
     private final OffsetDateTime createdAt;
 
@@ -44,7 +44,7 @@ public class Notification {
             String subject,
             String content,
             NotificationPriority priority,
-            String idempotencyKey
+            UUID idempotencyKey
     ) {
         validateCreationData(
                 channel,
@@ -81,7 +81,7 @@ public class Notification {
             NotificationStatus status,
             NotificationPriority priority,
             int attempts,
-            String idempotencyKey,
+            UUID idempotencyKey,
             OffsetDateTime createdAt,
             OffsetDateTime updatedAt,
             OffsetDateTime processedAt,
@@ -305,13 +305,13 @@ public class Notification {
         }
     }
 
-    private static String normalizeIdempotencyKey(String idempotencyKey) {
+    private static UUID normalizeIdempotencyKey(UUID idempotencyKey) {
 
-        if (idempotencyKey == null || idempotencyKey.isBlank()) {
+        if (idempotencyKey == null) {
             return null;
         }
 
-        return idempotencyKey.trim();
+        return idempotencyKey;
     }
 
     private static String normalizeError(String error) {
@@ -359,7 +359,7 @@ public class Notification {
         return attempts;
     }
 
-    public String getIdempotencyKey() {
+    public UUID getIdempotencyKey() {
         return idempotencyKey;
     }
 

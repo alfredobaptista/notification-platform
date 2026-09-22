@@ -11,5 +11,5 @@ public interface NotificationRepository {
 
     Optional<Notification> findById(UUID id);
 
-    Optional<Notification> findByIdempotencyKey(String idempotencyKey);
+    Optional<Notification> findByIdempotencyKey(UUID idempotencyKey);
 }
