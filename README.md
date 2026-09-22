@@ -1,81 +1,57 @@
 # Notification Platform
 
-> Plataforma assíncrona e multicanal de notificações, desenvolvida com Java 21 e Spring Boot, com processamento orientado a eventos através do RabbitMQ.
+[![Java](https://img.shields.io/badge/Java-21-ED8B00?style=for-the-badge&logo=openjdk&logoColor=white)](https://openjdk.org/)
+[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.x-6DB33F?style=for-the-badge&logo=springboot&logoColor=white)](https://spring.io/projects/spring-boot)
+[![RabbitMQ](https://img.shields.io/badge/RabbitMQ-FF6600?style=for-the-badge&logo=rabbitmq&logoColor=white)](https://www.rabbitmq.com/)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-4169E1?style=for-the-badge&logo=postgresql&logoColor=white)](https://www.postgresql.org/)
+[![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)](https://www.docker.com/)
+[![Maven](https://img.shields.io/badge/Maven-C71A36?style=for-the-badge&logo=apachemaven&logoColor=white)](https://maven.apache.org/)
 
-Uma plataforma backend concebida para processar notificações de forma **assíncrona, desacoplada e resiliente**, suportando diferentes canais de entrega através de uma arquitectura extensível.
+> Plataforma backend assíncrona e multicanal para processamento de notificações, desenvolvida com Java 21 e Spring Boot, utilizando RabbitMQ para processamento orientado a eventos.
 
-O projecto foi desenvolvido com foco em problemas reais de engenharia de software: **processamento assíncrono, desacoplamento, resiliência, idempotência, persistência, testes de integração e evolução independente dos canais de notificação**.
+A **Notification Platform** foi concebida para processar notificações de forma **assíncrona, desacoplada e resiliente**, permitindo suportar diferentes canais de entrega através de uma arquitectura extensível.
 
----
+O projecto explora problemas comuns de engenharia de software em sistemas distribuídos, incluindo **mensageria, processamento assíncrono, idempotência, persistência, retries, controlo de estado, desacoplamento e evolução independente dos canais de notificação**.
 
-## 🎯 Objectivo
 
-Em aplicações distribuídas, enviar uma notificação directamente durante o processamento de uma requisição HTTP pode criar vários problemas:
-
-* aumentar o tempo de resposta da API;
-* acoplar o domínio aos fornecedores externos;
-* tornar falhas de Email/SMS/Push capazes de afectar a operação principal;
-* dificultar retries;
-* dificultar o controlo do estado de entrega;
-* tornar a adição de novos canais mais complexa.
-
-A **Notification Platform** separa a criação da notificação da sua entrega.
-
-O fluxo principal é:
-
-```text
-Client
-   │
-   ▼
-REST API
-   │
-   ▼
-Notification
-   │
-   ├──────────────► PostgreSQL
-   │
-   ▼
-RabbitMQ
-   │
-   ▼
-Notification Consumer
-   │
-   ▼
-Channel Strategy
-   │
-   ├──► Email
-   ├──► SMS
-   └──► Push
-```
-
-Desta forma, a API não precisa aguardar pela conclusão do fornecedor externo para concluir a operação de criação da notificação.
+## High Level Design
+![High Level Design](docs/images/Notification-plataform.png)
 
 ---
-
 # 🏗️ Arquitectura
 
-O projecto segue princípios de **Clean Architecture**, **Hexagonal Architecture** e conceitos de **Domain-Driven Design (DDD)**.
+O projecto segue princípios de:
 
-A organização procura manter o domínio independente de detalhes de infraestrutura, frameworks e fornecedores externos.
+* **Clean Architecture**
+* **Hexagonal Architecture**
+* **Domain-Driven Design (DDD)**
+* **SOLID**
+* **Dependency Inversion**
+* **Separation of Concerns**
+* **Ports and Adapters**
+* **Strategy Pattern**
+* **Event-driven processing**
+
+A arquitectura procura manter o domínio independente de frameworks, bases de dados, brokers de mensagens e fornecedores externos.
 
 ```text
 ┌─────────────────────────────────────────────┐
 │                  REST API                   │
-│            Inbound Adapter                  │
+│              Inbound Adapter                │
 └──────────────────────┬──────────────────────┘
                        │
                        ▼
 ┌─────────────────────────────────────────────┐
 │                Application                  │
 │                                             │
-│  Use Cases / Ports / Application Services   │
+│   Use Cases / Ports / Application Services  │
 └──────────────────────┬──────────────────────┘
                        │
                        ▼
 ┌─────────────────────────────────────────────┐
 │                   Domain                    │
 │                                             │
-│ Entities / Value Objects / Business Rules   │
+│    Entities / Rules / Domain Behaviour      │
 └──────────────────────┬──────────────────────┘
                        │
              ┌─────────┴──────────┐
@@ -101,71 +77,13 @@ A organização procura manter o domínio independente de detalhes de infraestru
                          └────────────────────┘
 ```
 
-### Princípios aplicados
-
-* **Clean Architecture**
-* **Hexagonal Architecture**
-* **Domain-Driven Design**
-* **Dependency Inversion**
-* **Separation of Concerns**
-* **SOLID**
-* **Strategy Pattern**
-* **Ports and Adapters**
-* **Event-driven processing**
-
 ---
 
-# 🔄 Processamento assíncrono
+# 📢 Canais de notificação
 
-O RabbitMQ é utilizado como broker de mensagens entre a criação da notificação e o processamento da entrega.
+Os canais são implementados utilizando o **Strategy Pattern**.
 
-Fluxo conceptual:
-
-```text
-POST /notifications
-        │
-        ▼
-Create Notification
-        │
-        ├──────────────► PostgreSQL
-        │
-        ▼
-Publish Event
-        │
-        ▼
-     RabbitMQ
-        │
-        ▼
-Notification Consumer
-        │
-        ▼
-Resolve Channel
-        │
-        ▼
-Channel Strategy
-        │
-        ├──── Email
-        ├──── SMS
-        └──── Push
-```
-
-Esta abordagem permite desacoplar:
-
-**produção da notificação**
-
-de
-
-**processamento da entrega**.
-
----
-
-# 📢 Estratégia para canais
-
-Os diferentes canais de comunicação não são implementados como condicionais espalhadas pelo sistema.
-
-É utilizado o **Strategy Pattern**, permitindo que cada canal tenha a sua própria implementação.
-
-Conceito:
+Em vez de concentrar o comportamento de todos os canais numa única implementação, cada canal possui o seu próprio processamento.
 
 ```text
 NotificationChannelStrategy
@@ -177,165 +95,210 @@ NotificationChannelStrategy
           └── PushNotificationStrategy
 ```
 
-Isto permite adicionar novos canais sem alterar significativamente o fluxo principal da aplicação.
+Esta abordagem facilita a evolução da plataforma.
 
-Por exemplo, um novo canal como WhatsApp pode ser introduzido através de uma nova implementação da estratégia, mantendo o restante fluxo desacoplado.
+Um novo canal pode ser introduzido através de uma nova implementação da estratégia, reduzindo o impacto no restante fluxo da aplicação.
 
----
+### Canais actuais
 
-# 🧩 Principais componentes
+* Email
+* SMS
+* Push
 
-## REST API
+### Possíveis extensões
 
-Responsável por receber os pedidos de criação de notificações.
-
-A API valida os dados de entrada e inicia o processamento assíncrono.
-
----
-
-## Application Layer
-
-Contém os casos de uso e a orquestração da aplicação.
-
-Esta camada não deve depender directamente de implementações concretas de infraestrutura.
+* WhatsApp
+* Outros fornecedores de comunicação
 
 ---
 
-## Domain Layer
+# 🛡️ Resiliência e processamento de falhas
 
-Representa as regras e conceitos fundamentais do domínio de notificações.
+A entrega de notificações depende de componentes externos que podem apresentar falhas temporárias.
 
-O objectivo é manter as regras de negócio independentes de:
-
-* PostgreSQL;
-* RabbitMQ;
-* APIs externas;
-* Spring;
-* fornecedores de comunicação.
-
----
-
-## Persistence
-
-O PostgreSQL é utilizado para persistência das notificações.
-
-O acesso aos dados é realizado através de:
-
-* Spring Data JPA;
-* Hibernate;
-* PostgreSQL;
-* Flyway.
-
-As alterações do schema são controladas através de migrations versionadas.
-
----
-
-## Messaging
-
-O RabbitMQ é responsável pelo processamento assíncrono das notificações.
-
-A utilização de uma fila permite que a aplicação:
-
-* desacople produtores e consumidores;
-* processe notificações em background;
-* suporte crescimento horizontal dos consumidores;
-* isole falhas dos fornecedores externos;
-* implemente mecanismos de retry.
-
----
-
-# 🛡️ Resiliência
-
-Uma plataforma de notificações precisa considerar que fornecedores externos podem falhar.
-
-O desenho do projecto considera cenários como:
+A plataforma possui estados explícitos para acompanhar o ciclo de processamento:
 
 ```text
-Notification
-     │
-     ▼
- RabbitMQ
-     │
-     ▼
- Consumer
-     │
-     ▼
- Provider
-     │
-     ├── SUCCESS ─────► SENT
-     │
-     └── FAILURE
-            │
-            ▼
-          RETRY
-            │
-            ├── SUCCESS
-            │
-            └── FINAL FAILURE
+PENDING
+   │
+   ▼
+PROCESSING
+   │
+   ├──────────────► DELIVERED
+   │
+   └──────────────► RETRYING
+                         │
+                         ▼
+                    PROCESSING
+                         │
+                         ├──► DELIVERED
+                         │
+                         └──► FAILED / DEAD_LETTER
 ```
 
-O objectivo é evitar que uma falha temporária de um fornecedor externo provoque a perda da notificação.
+Os estados actualmente suportados são:
+
+```text
+PENDING
+PROCESSING
+DELIVERED
+RETRYING
+FAILED
+DEAD_LETTER
+```
+
+O controlo do estado e das tentativas permite acompanhar o processamento e tratar falhas de forma explícita.
 
 ---
 
 # 🔁 Idempotência
 
-Sistemas assíncronos podem processar uma mensagem mais de uma vez.
+Sistemas assíncronos podem receber ou processar a mesma operação mais do que uma vez.
 
-Por isso, a plataforma considera **idempotência** como uma preocupação importante no processamento das notificações.
+Por isso, a plataforma utiliza uma **Idempotency Key** na criação de notificações.
 
-O processamento deve evitar que a mesma operação seja executada de forma indevida quando uma mensagem é entregue novamente.
+A chave é representada por um UUID e possui uma restrição de unicidade na base de dados.
+
+```text
+Client
+  │
+  │ Idempotency-Key
+  ▼
+REST API
+  │
+  ▼
+Application
+  │
+  ▼
+PostgreSQL
+  │
+  └── unique idempotency_key
+```
+
+Isto permite identificar uma operação já registada e reduzir o risco de criação duplicada da mesma notificação.
+
+---
+
+# 🗃️ Persistência
+
+O PostgreSQL é utilizado como base de dados principal.
+
+A persistência utiliza:
+
+* Spring Data JPA
+* Hibernate
+* PostgreSQL
+* Flyway
+
+As alterações ao schema são geridas através de migrations versionadas.
+
+A entidade principal `Notification` mantém informações como:
+
+* identificador;
+* destinatário;
+* canal;
+* conteúdo;
+* prioridade;
+* estado;
+* número de tentativas;
+* idempotency key;
+* timestamps;
+* último erro.
+
+O projecto também mantém o histórico das tentativas de processamento através de `notification_attempts`.
+
+---
+
+# 🐇 Messaging
+
+O RabbitMQ é responsável pelo processamento assíncrono.
+
+A arquitectura utiliza consumidores específicos para os diferentes canais:
+
+```text
+RabbitMQ
+    │
+    ├── Email Consumer
+    │
+    ├── SMS Consumer
+    │
+    └── Push Consumer
+```
+
+Os consumidores são responsáveis por:
+
+* receber mensagens;
+* localizar a notificação;
+* actualizar o estado;
+* executar a estratégia correspondente ao canal;
+* registar falhas;
+* controlar retries;
+* encaminhar mensagens para dead-letter quando necessário.
 
 ---
 
 # 🧪 Estratégia de testes
 
-O projecto utiliza diferentes níveis de testes.
+O projecto utiliza diferentes níveis de validação.
 
-### Testes unitários
+## Testes unitários
 
-Utilizados para validar regras de negócio e componentes isolados.
+Os testes unitários validam componentes isoladamente, utilizando mocks quando necessário.
+
+São utilizados para testar:
+
+* regras de domínio;
+* serviços de aplicação;
+* consumidores;
+* publisher RabbitMQ;
+* comportamentos de sucesso;
+* comportamentos de falha;
+* transições de estado.
+
+Tecnologias principais:
+
+* JUnit
+* Mockito
+* Spring Boot Test
+
+## Teste de contexto e infraestrutura
+
+O projecto também possui um teste de contexto da aplicação utilizando **Testcontainers**.
+
+Este teste inicia dependências reais em containers Docker:
 
 ```text
-Domain
-Application
-Strategies
-Business Rules
+┌────────────────────────────┐
+│ NotificationPlatformTests  │
+└─────────────┬──────────────┘
+              │
+        ┌─────┴─────┐
+        ▼           ▼
+ PostgreSQL      RabbitMQ
+ Container       Container
 ```
 
-### Testes de integração
+Durante a execução são inicializados componentes como:
 
-Utilizados para verificar a integração entre os componentes reais da aplicação.
-
-O projecto utiliza **Testcontainers** para executar dependências reais durante os testes.
-
-Infraestrutura utilizada nos testes:
-
-```text
-┌──────────────────────┐
-│   Integration Test   │
-└──────────┬───────────┘
-           │
-     ┌─────┴─────┐
-     ▼           ▼
-PostgreSQL    RabbitMQ
-Container     Container
-```
-
-Desta forma, os testes não dependem exclusivamente de mocks para validar integrações críticas.
+* PostgreSQL real;
+* RabbitMQ real;
+* Flyway;
+* Hibernate/JPA;
+* Spring AMQP;
+* ApplicationContext.
 
 ---
 
 # 🐳 Docker
 
-O projecto pode ser executado através do Docker Compose.
+A aplicação foi preparada para execução através de Docker.
 
-A stack local inclui:
+A infraestrutura local pode ser composta por:
 
 ```text
 ┌─────────────────────────────┐
 │       Notification API      │
-│        Spring Boot          │
+│         Spring Boot         │
 └──────────────┬──────────────┘
                │
        ┌───────┴────────┐
@@ -344,31 +307,31 @@ A stack local inclui:
  PostgreSQL          RabbitMQ
 ```
 
-Os serviços são configurados através de variáveis de ambiente.
+O projecto inclui configuração de Docker Compose para facilitar a execução da infraestrutura local.
 
 ---
 
 # 🛠️ Stack tecnológica
 
-| Categoria           | Tecnologia               |
-| ------------------- | ------------------------ |
-| Linguagem           | Java 21                  |
-| Framework           | Spring Boot              |
-| API                 | Spring Web MVC           |
-| Persistência        | Spring Data JPA          |
-| ORM                 | Hibernate                |
-| Database            | PostgreSQL               |
-| Migrations          | Flyway                   |
-| Messaging           | RabbitMQ                 |
-| Containerização     | Docker / Docker Compose  |
-| Testes              | JUnit / Spring Boot Test |
-| Integration Testing | Testcontainers           |
-| Build               | Maven                    |
-| Monitoring          | Spring Boot Actuator     |
-| Architecture        | Clean Architecture       |
-| Architecture Style  | Hexagonal Architecture   |
-| Design              | Domain-Driven Design     |
-| Design Pattern      | Strategy Pattern         |
+| Categoria            | Tecnologia                         |
+| -------------------- | ---------------------------------- |
+| Linguagem            | Java 21                            |
+| Framework            | Spring Boot                        |
+| API                  | Spring Web MVC                     |
+| Persistência         | Spring Data JPA                    |
+| ORM                  | Hibernate                          |
+| Base de dados        | PostgreSQL                         |
+| Migrations           | Flyway                             |
+| Messaging            | RabbitMQ                           |
+| Containerização      | Docker / Docker Compose            |
+| Testes               | JUnit / Mockito / Spring Boot Test |
+| Test Infrastructure  | Testcontainers                     |
+| Build                | Maven                              |
+| Monitoring           | Spring Boot Actuator               |
+| Arquitectura         | Clean Architecture                 |
+| Estilo arquitectural | Hexagonal Architecture             |
+| Design               | Domain-Driven Design               |
+| Design Pattern       | Strategy Pattern                   |
 
 ---
 
@@ -381,25 +344,20 @@ Para executar o projecto localmente:
 * Docker Compose
 * Git
 
-Verificar:
+Verificar a instalação:
 
 ```bash
 java -version
 docker --version
 docker compose version
+git --version
 ```
 
 ---
 
 # 🚀 Executar o projecto
 
-### 1. Clonar o repositório
-
-```bash
-git clone git@github.com:alfredobaptista/notification-platform.git
-```
-
-Ou:
+## 1. Clonar o repositório
 
 ```bash
 git clone https://github.com/alfredobaptista/notification-platform.git
@@ -411,7 +369,9 @@ Entrar no projecto:
 cd notification-platform
 ```
 
-### 2. Criar o ficheiro de ambiente
+## 2. Configurar o ambiente
+
+Copiar o ficheiro `.env.example`:
 
 ```bash
 cp .env.example .env
@@ -419,61 +379,57 @@ cp .env.example .env
 
 Preencher as variáveis necessárias no `.env`.
 
-> O ficheiro `.env` não deve ser versionado.
-
-### 3. Subir a infraestrutura
+## 3. Iniciar a infraestrutura
 
 ```bash
 docker compose up -d
 ```
 
-Para acompanhar os serviços:
+Verificar os containers:
 
 ```bash
 docker compose ps
 ```
 
-Logs:
+Consultar logs:
 
 ```bash
 docker compose logs -f
 ```
 
-### 4. Executar a aplicação
+## 4. Executar a aplicação
 
-A aplicação pode ser executada através do Maven Wrapper:
+Utilizando o Maven Wrapper:
 
 ```bash
 ./mvnw spring-boot:run
 ```
 
-Ou através do Docker Compose, conforme a configuração do ambiente.
-
 ---
 
 # 🧪 Executar os testes
 
-Executar todos os testes:
+Executar toda a suite:
 
 ```bash
 ./mvnw test
 ```
 
-Para executar apenas uma classe específica:
+Para executar apenas o teste de contexto com Testcontainers:
 
 ```bash
-./mvnw test -Dtest=NotificationRepositoryIntegrationTest
+./mvnw -Dtest=NotificationPlatformApplicationTests test
 ```
 
-Os testes de integração que utilizam Testcontainers necessitam de um ambiente Docker funcional.
+Este teste necessita de uma instalação Docker funcional, pois cria containers reais de PostgreSQL e RabbitMQ durante a execução.
 
 ---
 
 # 📊 Health Check
 
-A aplicação utiliza **Spring Boot Actuator** para disponibilizar endpoints de monitorização e health checks.
+A aplicação utiliza **Spring Boot Actuator** para health checks e monitorização.
 
-O endpoint principal pode ser consultado através de:
+Endpoint:
 
 ```text
 http://localhost:8080/actuator/health
@@ -481,9 +437,9 @@ http://localhost:8080/actuator/health
 
 ---
 
-# 🔐 Configuração e segurança
+# 🔐 Configuração
 
-As credenciais e chaves de fornecedores externos devem ser fornecidas através de variáveis de ambiente.
+As credenciais e configurações sensíveis devem ser fornecidas através de variáveis de ambiente.
 
 Exemplo:
 
@@ -498,22 +454,15 @@ RABBITMQ_HOST=localhost
 RABBITMQ_PORT=5672
 RABBITMQ_USER=
 RABBITMQ_PASS=
-
-BREVO_API_KEY=
-BREVO_SENDER_EMAIL=
-
-TWILIO_ACCOUNT_SID=
-TWILIO_AUTH_TOKEN=
-TWILIO_FROM_NUMBER=
 ```
 
-**Nunca coloque credenciais reais no Git.**
+Quando integrações externas forem configuradas, as respectivas credenciais também devem ser fornecidas através de variáveis de ambiente ou mecanismos apropriados de gestão de secrets.
 
 ---
 
 # 🗂️ Estrutura do projecto
 
-A estrutura segue a separação de responsabilidades definida pela arquitectura:
+A estrutura segue a separação definida pela arquitectura:
 
 ```text
 src/
@@ -534,51 +483,33 @@ src/
         └── com/github/alfredobaptista/notification/
 ```
 
-A organização interna procura manter as dependências direccionadas para o domínio e separar as preocupações de infraestrutura.
+A separação entre domínio, aplicação e adapters permite reduzir o acoplamento entre regras de negócio e infraestrutura.
 
 ---
-
-# 🔭 Roadmap
-
-O projecto está em evolução.
-
-Possíveis evoluções:
-
-* [ ] Retry configurável por canal
-* [ ] Dead Letter Exchange / Dead Letter Queue
-* [ ] Circuit Breaker por fornecedor
-* [ ] Rate limiting por canal
-* [ ] Observabilidade distribuída
-* [ ] Métricas de entrega
-* [ ] Templates de notificações
-* [ ] Suporte a WhatsApp
-* [ ] Persistência do histórico de tentativas
-* [ ] Idempotency keys na API
-* [ ] CI/CD com GitHub Actions
-* [ ] Testes de carga
-* [ ] Dashboard operacional
-
----
-
 # 📚 Objectivos técnicos
 
-Este projecto foi criado como um laboratório prático para explorar problemas comuns em sistemas backend distribuídos:
+O projecto foi desenvolvido como um laboratório prático para explorar desafios comuns de sistemas backend distribuídos.
+
+Entre os principais objectivos estão:
 
 * processamento assíncrono;
-* sistemas orientados a eventos;
+* arquitectura orientada a eventos;
 * mensageria;
-* integração com fornecedores externos;
+* integração com serviços externos;
 * resiliência;
-* consistência;
+* retries;
 * idempotência;
 * persistência;
-* testes de integração;
-* arquitectura limpa;
-* princípios de DDD;
-* design patterns;
+* controlo de estado;
+* testes automatizados;
+* Clean Architecture;
+* Hexagonal Architecture;
+* Domain-Driven Design;
+* SOLID;
+* Design Patterns;
 * containerização.
 
-O foco não é apenas **enviar uma mensagem**, mas estudar como construir uma plataforma capaz de processar operações de comunicação de forma desacoplada e resiliente.
+O foco não está apenas no envio de uma notificação, mas na construção de uma plataforma backend capaz de **processar operações de comunicação de forma desacoplada, extensível e resiliente**.
 
 ---
 
@@ -590,13 +521,11 @@ Backend Developer | Java • Spring Boot
 
 Estudante de Ciências da Computação na Universidade Agostinho Neto.
 
-### Contactos
-
-* GitHub: [@alfredobaptista](https://github.com/alfredobaptista)
-* LinkedIn: [alfredobaptista](https://www.linkedin.com/in/alfredobaptista/)
+* GitHub: https://github.com/alfredobaptista
+* LinkedIn: https://www.linkedin.com/in/alfredobaptista/
 
 ---
 
 ## 📄 Licença
 
-Este projecto é desenvolvido para fins de estudo, experimentação e portfólio.
+Este projecto foi desenvolvido para fins de estudo, experimentação e portfólio.
